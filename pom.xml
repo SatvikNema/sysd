@@ -22,6 +22,7 @@
   <modules>
     <module>ratelimiter</module>
     <module>parkinglot</module>
+    <module>oms</module>
   </modules>
 
   <dependencies>
