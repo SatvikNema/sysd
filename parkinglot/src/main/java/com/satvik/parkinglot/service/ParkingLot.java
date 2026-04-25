@@ -28,33 +28,39 @@ public class ParkingLot {
         this.clock = clock;
     }
 
-    public synchronized Ticket park(Vehicle vehicle) {
-        if (vehicleToTicketId.containsKey(vehicle.numberPlate())) {
+    public Ticket park(Vehicle vehicle) {
+        String ticketId = UUID.randomUUID().toString();
+
+        // Atomic dedup: claim the plate or fail. No lock needed.
+        String existing = vehicleToTicketId.putIfAbsent(vehicle.numberPlate(), ticketId);
+        if (existing != null) {
             throw new VehicleAlreadyParkedException(
                     "Vehicle " + vehicle.numberPlate() + " is already parked");
         }
 
-        Slot slot = allocator.allocate(vehicle.type());
-
-        Ticket ticket = Ticket.builder()
-                .id(UUID.randomUUID().toString())
-                .vehicle(vehicle)
-                .slot(slot)
-                .entryEpoch(clock.getAsLong())
-                .build();
-
-        activeTickets.put(ticket.getId(), ticket);
-        vehicleToTicketId.put(vehicle.numberPlate(), ticket.getId());
-
-        return ticket;
+        try {
+            Slot slot = allocator.allocate(vehicle.type());
+            Ticket ticket = Ticket.builder()
+                    .id(ticketId)
+                    .vehicle(vehicle)
+                    .slot(slot)
+                    .entryEpoch(clock.getAsLong())
+                    .build();
+            activeTickets.put(ticketId, ticket);
+            return ticket;
+        } catch (RuntimeException e) {
+            // Roll back the dedup claim so the vehicle can retry.
+            vehicleToTicketId.remove(vehicle.numberPlate(), ticketId);
+            throw e;
+        }
     }
 
-    public synchronized Ticket unpark(String ticketId) {
+    public Ticket unpark(String ticketId) {
         Ticket ticket = activeTickets.remove(ticketId);
         if (ticket == null) {
             throw new TicketNotFoundException("Ticket " + ticketId + " not found");
         }
-        vehicleToTicketId.remove(ticket.getVehicle().numberPlate());
+        vehicleToTicketId.remove(ticket.getVehicle().numberPlate(), ticketId);
 
         ticket.setExitEpoch(clock.getAsLong());
         ticket.setAmountCharged(pricingStrategy.calculate(ticket));

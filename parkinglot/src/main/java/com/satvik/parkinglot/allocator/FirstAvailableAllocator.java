@@ -9,15 +9,19 @@ import java.util.Deque;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FirstAvailableAllocator implements SlotAllocator {
 
     private final Map<VehicleType, Deque<Slot>> freeSlotsByType;
+    private final Map<VehicleType, ReentrantLock> locksByType;
 
     public FirstAvailableAllocator(List<Slot> slots) {
         this.freeSlotsByType = new EnumMap<>(VehicleType.class);
+        this.locksByType = new EnumMap<>(VehicleType.class);
         for (VehicleType type : VehicleType.values()) {
             freeSlotsByType.put(type, new ArrayDeque<>());
+            locksByType.put(type, new ReentrantLock());
         }
         for (Slot slot : slots) {
             freeSlotsByType.get(slot.type()).offer(slot);
@@ -25,16 +29,28 @@ public class FirstAvailableAllocator implements SlotAllocator {
     }
 
     @Override
-    public synchronized Slot allocate(VehicleType type) {
-        Slot slot = freeSlotsByType.get(type).poll();
-        if (slot == null) {
-            throw new NoSlotAvailableException("No slot available for " + type);
+    public Slot allocate(VehicleType type) {
+        ReentrantLock lock = locksByType.get(type);
+        lock.lock();
+        try {
+            Slot slot = freeSlotsByType.get(type).poll();
+            if (slot == null) {
+                throw new NoSlotAvailableException("No slot available for " + type);
+            }
+            return slot;
+        } finally {
+            lock.unlock();
         }
-        return slot;
     }
 
     @Override
-    public synchronized void release(Slot slot) {
-        freeSlotsByType.get(slot.type()).offer(slot);
+    public void release(Slot slot) {
+        ReentrantLock lock = locksByType.get(slot.type());
+        lock.lock();
+        try {
+            freeSlotsByType.get(slot.type()).offer(slot);
+        } finally {
+            lock.unlock();
+        }
     }
 }
