@@ -24,6 +24,7 @@
     <module>parkinglot</module>
     <module>oms</module>
     <module>omsclaude</module>
+    <module>stockbroker</module>
   </modules>
 
   <dependencies>
