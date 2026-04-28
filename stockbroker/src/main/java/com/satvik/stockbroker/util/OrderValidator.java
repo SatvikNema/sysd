@@ -23,14 +23,14 @@ public class OrderValidator {
         }
 
         PortfolioItem item = itemOptional.get();
-        if(item.getQty() < sellOrder.getQuantity()){
+        if(item.getQty() < sellOrder.remainingQuantity()){
             sellOrder.setOrderStatus(OrderStatus.CANCELLED);
             throw new IllegalStateException("User "+sellingUser.getName()+" does not have enough "+stock);
         }
     }
 
     public static void validateBuyOrder(User buyingUser, Order buyOrder) {
-        long totalPrice = buyOrder.getPrice() * buyOrder.getQuantity();
+        long totalPrice = buyOrder.getPrice() * buyOrder.remainingQuantity();
         if(totalPrice > buyingUser.getBalance().get()){
             buyOrder.setOrderStatus(OrderStatus.CANCELLED);
             throw new IllegalStateException("User "+buyingUser.getName()+" does not enough balance");

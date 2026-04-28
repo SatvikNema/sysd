@@ -4,6 +4,7 @@ import com.satvik.stockbroker.entity.Order;
 import com.satvik.stockbroker.entity.OrderType;
 import com.satvik.stockbroker.entity.PortfolioItem;
 import com.satvik.stockbroker.entity.Stock;
+import com.satvik.stockbroker.entity.Trade;
 import com.satvik.stockbroker.entity.User;
 import com.satvik.stockbroker.exception.UserNotFoundException;
 import com.satvik.stockbroker.service.IOrderService;
@@ -117,6 +118,13 @@ public class StockExchange {
                 System.out.println("Stock, qty, averagePrice");
                 for(Order order : orders){
                     System.out.println(order);
+                }
+            } else if("trades".equalsIgnoreCase(inputs[0])){
+                String userId = inputs[1];
+                User user = userService.getUser(userId).orElseThrow(() -> new UserNotFoundException("No user with id "+userId));
+                List<Trade> trades = tradeService.getTrades(userId);
+                for(Trade trade : trades){
+                    System.out.println(trade);
                 }
             }
         }

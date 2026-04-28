@@ -14,4 +14,15 @@ public class Trade {
     private long price;
     private int quantity;
     private Instant executedAt;
+
+    @Override
+    public String toString() {
+        return "Trade{" +
+                "sellId='" + sellId + '\'' +
+                ", buyId='" + buyId + '\'' +
+                ", price=" + price +
+                ", quantity=" + quantity +
+                ", executedAt=" + executedAt +
+                '}';
+    }
 }
