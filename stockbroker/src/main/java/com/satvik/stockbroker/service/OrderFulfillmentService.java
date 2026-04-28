@@ -12,6 +12,7 @@ import com.satvik.stockbroker.service.impl.TradeService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.satvik.stockbroker.util.OrderValidator.validateBuyOrder;
 import static com.satvik.stockbroker.util.OrderValidator.validateSellOrder;
@@ -116,7 +117,7 @@ public class OrderFulfillmentService {
             buyOrder.setOrderStatus(OrderStatus.FULFILLED);
             stock.getOrderQueue().removeTuple(sellOrder, buyOrder);
         }
-        stock.getCurrentPrice().set(sellingPrice);
+        stock.updatePrice(sellingPrice);
         Trade trade = Trade.builder()
                 .id(UUID.randomUUID().toString())
                 .sellId(sellingUser.getId())
