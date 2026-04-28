@@ -1,7 +1,5 @@
 package com.satvik.stockbroker.entity;
 
-import javax.management.InvalidAttributeValueException;
-
 public enum OrderType {
     BUY,
     SELL;

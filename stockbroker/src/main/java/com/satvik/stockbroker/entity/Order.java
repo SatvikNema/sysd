@@ -2,11 +2,13 @@ package com.satvik.stockbroker.entity;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 
 @Data
 @Builder
+@EqualsAndHashCode(of = "id")
 public class Order {
     private String id;
     private User user;

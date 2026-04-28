@@ -5,15 +5,25 @@ import com.satvik.stockbroker.entity.OrderStatus;
 import com.satvik.stockbroker.entity.OrderType;
 import com.satvik.stockbroker.entity.PortfolioItem;
 import com.satvik.stockbroker.entity.Stock;
+import com.satvik.stockbroker.entity.Trade;
 import com.satvik.stockbroker.entity.User;
+import com.satvik.stockbroker.service.impl.TradeService;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import static com.satvik.stockbroker.util.OrderValidator.validateBuyOrder;
 import static com.satvik.stockbroker.util.OrderValidator.validateSellOrder;
 
-public class OrderFullFillmentService {
+public class OrderFulfillmentService {
+
+    private final TradeService tradeService;
+
+    public OrderFulfillmentService(TradeService tradeService){
+        this.tradeService = tradeService;
+    }
+
 
     public synchronized void fullFillOrders(Order biggerOrder, List<Order> smallerOrders){
         for(Order order : smallerOrders){
@@ -43,8 +53,8 @@ public class OrderFullFillmentService {
 
         Stock stock = sellOrder.getStock();
 
-        int sellingQuantity = sellOrder.getQuantity();
-        int buyingQuantity = buyOrder.getQuantity();
+        int sellingQuantity = sellOrder.getQuantity() - sellOrder.getQuantityFilled();
+        int buyingQuantity = buyOrder.getQuantity() - buyOrder.getQuantityFilled();
         if(!stock.getId().equals(buyOrder.getStock().getId())){
             throw new IllegalStateException("Stocks in both orders should be same");
         }
@@ -106,6 +116,15 @@ public class OrderFullFillmentService {
             stock.getOrderQueue().removeTuple(sellOrder, buyOrder);
         }
         stock.getCurrentPrice().set(sellingPrice);
+        Trade trade = Trade.builder()
+                .id(UUID.randomUUID().toString())
+                .sellId(sellingUser.getId())
+                .buyId(buyingUser.getId())
+                .price(sellOrder.getPrice())
+                .quantity(partialFilledOrderQuantity)
+                .executedAt(Instant.now())
+                .build();
+        tradeService.addTrade(trade);
 
         System.out.println("Price of "+stock.getName()+" set to "+sellingPrice);
     }

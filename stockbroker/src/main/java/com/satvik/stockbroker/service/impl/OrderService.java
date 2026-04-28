@@ -5,12 +5,13 @@ import com.satvik.stockbroker.entity.OrderStatus;
 import com.satvik.stockbroker.entity.OrderType;
 import com.satvik.stockbroker.entity.Stock;
 import com.satvik.stockbroker.entity.User;
+import com.satvik.stockbroker.exception.OrderNotFoundException;
 import com.satvik.stockbroker.exception.StockNotFoundException;
 import com.satvik.stockbroker.exception.UserNotFoundException;
 import com.satvik.stockbroker.service.IOrderService;
 import com.satvik.stockbroker.service.IStockService;
 import com.satvik.stockbroker.service.IUserService;
-import com.satvik.stockbroker.service.OrderFullFillmentService;
+import com.satvik.stockbroker.service.OrderFulfillmentService;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class OrderService implements IOrderService {
     private final List<Order> orders = new ArrayList<>();
     private final IUserService userService;
     private final IStockService stockService;
-    private final OrderFullFillmentService orderFullFillmentService;
+    private final OrderFulfillmentService orderFulfillmentService;
     private final Clock clock;
 
     public OrderService(IUserService userService, IStockService stockService, Clock clock){
@@ -37,7 +38,7 @@ public class OrderService implements IOrderService {
         this.userService = userService;
         this.stockService = stockService;
         this.clock = clock;
-        this.orderFullFillmentService = new OrderFullFillmentService();
+        this.orderFulfillmentService = new OrderFulfillmentService(new TradeService());
     }
 
     @Override
@@ -78,32 +79,37 @@ public class OrderService implements IOrderService {
                 .build();
         if(orderType == OrderType.SELL){
             validateSellOrder(user, order);
-            List<Order> sellOrders = stock.getOrderQueue().getSellOrders().getOrDefault(order.getPrice(), new ArrayList<>());
+            List<Order> sellOrders = stock.getOrderQueue().getSellOrders().computeIfAbsent(order.getPrice(), k -> new ArrayList<>());
             sellOrders.add(order);
             stock.getOrderQueue().getSellOrders().put(order.getPrice(), sellOrders);
         } else if (orderType == OrderType.BUY){
             validateBuyOrder(user, order);
-            List<Order> buyOrders = stock.getOrderQueue().getBuyOrders().getOrDefault(order.getPrice(), new ArrayList<>());
+            List<Order> buyOrders = stock.getOrderQueue().getBuyOrders().computeIfAbsent(order.getPrice(), k -> new ArrayList<>());
             buyOrders.add(order);
             stock.getOrderQueue().getBuyOrders().put(order.getPrice(), buyOrders);
         }
 
         orderIdToOrder.put(id, order);
         orders.add(order);
+//        commented out for now, to test order execution manually.
+//        executeOrder(order.getId());
         return order;
     }
 
     @Override
     public void executeOrder(String orderId) {
         Order order = getOrder(orderId)
-                .orElseThrow(() -> new StockNotFoundException("Order with id " + orderId + " not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order with id " + orderId + " not found"));
         Stock stock = order.getStock();
         if(order.getOrderType() == OrderType.BUY){
             TreeMap<Long, List<Order>> counterSellOrdersMap = stock.getOrderQueue().getSellOrders();
-            int quantityFulfilled = 0;
+            int quantityFulfilled = order.getQuantityFilled();
             List<Order> sellOrdersToFullFill = new ArrayList<>();
 
             for(Map.Entry<Long, List<Order>> entry : counterSellOrdersMap.entrySet()){
+                if(quantityFulfilled >= order.getQuantity()){
+                    break;
+                }
                 long lowerSellPrice = entry.getKey();
                 if(lowerSellPrice > order.getPrice()) break;
                 List<Order> lowestPriceSellOrders = entry.getValue();
@@ -114,13 +120,10 @@ public class OrderService implements IOrderService {
                         break;
                     }
                 }
-                if(quantityFulfilled >= order.getQuantity()){
-                    break;
-                }
             }
             if(sellOrdersToFullFill.isEmpty()) return;
             System.out.println("Got sell order to full fill " + order);
-            orderFullFillmentService.fullFillOrders(order, sellOrdersToFullFill);
+            orderFulfillmentService.fullFillOrders(order, sellOrdersToFullFill);
         } else if(order.getOrderType() == OrderType.SELL){
             TreeMap<Long, List<Order>> counterBuyOrdersMap = stock.getOrderQueue().getBuyOrders();
             int quantityFulfilled = 0;
@@ -143,7 +146,7 @@ public class OrderService implements IOrderService {
             }
             if(buyOrdersToFullFill.isEmpty()) return;
             System.out.println("Got buy order to full fill " + order);
-            orderFullFillmentService.fullFillOrders(order, buyOrdersToFullFill);
+            orderFulfillmentService.fullFillOrders(order, buyOrdersToFullFill);
         }
     }
 

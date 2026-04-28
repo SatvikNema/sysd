@@ -53,16 +53,16 @@ public class StockExchange {
         satvik.setPortfolio(satvikPortfolio);
 
         List<PortfolioItem> lakshitaPortfolio = List.of(
-                PortfolioItem.builder().userId(satvik.getId()).stock(itc).qty(5).averagePrice(100_00).build(),
-                PortfolioItem.builder().userId(satvik.getId()).stock(hul).qty(5).averagePrice(200_00).build(),
-                PortfolioItem.builder().userId(satvik.getId()).stock(mrf).qty(5).averagePrice(1000_00).build()
+                PortfolioItem.builder().userId(lakshita.getId()).stock(itc).qty(5).averagePrice(100_00).build(),
+                PortfolioItem.builder().userId(lakshita.getId()).stock(hul).qty(5).averagePrice(200_00).build(),
+                PortfolioItem.builder().userId(lakshita.getId()).stock(mrf).qty(5).averagePrice(1000_00).build()
         );
         lakshita.setPortfolio(lakshitaPortfolio);
 
         List<PortfolioItem> keshavPortfolio = List.of(
-                PortfolioItem.builder().userId(satvik.getId()).stock(itc).qty(50).averagePrice(100_00).build(),
-                PortfolioItem.builder().userId(satvik.getId()).stock(hul).qty(50).averagePrice(200_00).build(),
-                PortfolioItem.builder().userId(satvik.getId()).stock(mrf).qty(50).averagePrice(1000_00).build()
+                PortfolioItem.builder().userId(keshav.getId()).stock(itc).qty(50).averagePrice(100_00).build(),
+                PortfolioItem.builder().userId(keshav.getId()).stock(hul).qty(50).averagePrice(200_00).build(),
+                PortfolioItem.builder().userId(keshav.getId()).stock(mrf).qty(50).averagePrice(1000_00).build()
         );
         keshav.setPortfolio(keshavPortfolio);
 
