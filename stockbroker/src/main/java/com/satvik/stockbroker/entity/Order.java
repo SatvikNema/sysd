@@ -34,4 +34,8 @@ public class Order {
                 ", orderType=" + orderType +
                 '}';
     }
+
+    public int remainingQuantity() {
+        return quantity - quantityFilled;
+    }
 }

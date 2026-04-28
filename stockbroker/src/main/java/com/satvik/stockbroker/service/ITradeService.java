@@ -1,4 +1,4 @@
-package com.satvik.stockbroker.service.impl;
+package com.satvik.stockbroker.service;
 
 import com.satvik.stockbroker.entity.Trade;
 

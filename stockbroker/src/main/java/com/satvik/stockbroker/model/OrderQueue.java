@@ -28,13 +28,12 @@ public class OrderQueue {
     }
 
     public void remove(OrderType orderType, Order order) {
-        long sellPrice = 0;
         if (orderType == OrderType.BUY) {
             long buyPrice = order.getPrice();
             buyOrders.get(buyPrice).remove(order);
             cleanup(buyOrders, buyPrice);
         } else if (orderType == OrderType.SELL) {
-            sellPrice = order.getPrice();
+            long sellPrice = order.getPrice();
             sellOrders.get(sellPrice).remove(order);
             cleanup(sellOrders, sellPrice);
         }

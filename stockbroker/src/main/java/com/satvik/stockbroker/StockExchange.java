@@ -11,6 +11,7 @@ import com.satvik.stockbroker.service.IStockService;
 import com.satvik.stockbroker.service.IUserService;
 import com.satvik.stockbroker.service.impl.OrderService;
 import com.satvik.stockbroker.service.impl.StockService;
+import com.satvik.stockbroker.service.impl.TradeService;
 import com.satvik.stockbroker.service.impl.UserService;
 
 import java.time.Clock;
@@ -26,7 +27,8 @@ public class StockExchange {
     public static void main(String[] args) throws InterruptedException {
         IUserService userService = new UserService();
         IStockService stockService = new StockService();
-        IOrderService orderService = new OrderService(userService, stockService, Clock.systemUTC());
+        TradeService tradeService = new TradeService();
+        IOrderService orderService = new OrderService(userService, stockService, tradeService, Clock.systemUTC());
 
 
         Stock itc = stockService.addStock(ITC, 100_00);

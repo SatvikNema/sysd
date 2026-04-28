@@ -33,12 +33,15 @@ public class OrderService implements IOrderService {
     private final OrderFulfillmentService orderFulfillmentService;
     private final Clock clock;
 
-    public OrderService(IUserService userService, IStockService stockService, Clock clock){
+    public OrderService(IUserService userService,
+                        IStockService stockService,
+                        TradeService tradeService,
+                        Clock clock){
         this.orderIdToOrder = new ConcurrentHashMap<>();
         this.userService = userService;
         this.stockService = stockService;
         this.clock = clock;
-        this.orderFulfillmentService = new OrderFulfillmentService(new TradeService());
+        this.orderFulfillmentService = new OrderFulfillmentService(tradeService);
     }
 
     @Override
@@ -79,14 +82,16 @@ public class OrderService implements IOrderService {
                 .build();
         if(orderType == OrderType.SELL){
             validateSellOrder(user, order);
-            List<Order> sellOrders = stock.getOrderQueue().getSellOrders().computeIfAbsent(order.getPrice(), k -> new ArrayList<>());
-            sellOrders.add(order);
-            stock.getOrderQueue().getSellOrders().put(order.getPrice(), sellOrders);
+            stock.getOrderQueue()
+                    .getSellOrders()
+                    .computeIfAbsent(order.getPrice(), k -> new ArrayList<>())
+                    .add(order);
         } else if (orderType == OrderType.BUY){
             validateBuyOrder(user, order);
-            List<Order> buyOrders = stock.getOrderQueue().getBuyOrders().computeIfAbsent(order.getPrice(), k -> new ArrayList<>());
-            buyOrders.add(order);
-            stock.getOrderQueue().getBuyOrders().put(order.getPrice(), buyOrders);
+            stock.getOrderQueue()
+                    .getBuyOrders()
+                    .computeIfAbsent(order.getPrice(), k -> new ArrayList<>())
+                    .add(order);
         }
 
         orderIdToOrder.put(id, order);
@@ -114,7 +119,7 @@ public class OrderService implements IOrderService {
                 if(lowerSellPrice > order.getPrice()) break;
                 List<Order> lowestPriceSellOrders = entry.getValue();
                 for(Order lowestPriceSellOrder : lowestPriceSellOrders){
-                    quantityFulfilled += lowestPriceSellOrder.getQuantity();
+                    quantityFulfilled += lowestPriceSellOrder.remainingQuantity();
                     sellOrdersToFullFill.add(lowestPriceSellOrder);
                     if(quantityFulfilled >= order.getQuantity()){
                         break;
@@ -130,18 +135,18 @@ public class OrderService implements IOrderService {
             List<Order> buyOrdersToFullFill = new ArrayList<>();
 
             for(Map.Entry<Long, List<Order>> entry : counterBuyOrdersMap.entrySet()){
+                if(quantityFulfilled >= order.getQuantity()){
+                    break;
+                }
                 long highestBuyPrice = entry.getKey();
                 if(highestBuyPrice < order.getPrice()) break;
                 List<Order> highestPriceBuyOrders = entry.getValue();
                 for(Order highestPriceBuyOrder : highestPriceBuyOrders){
-                    quantityFulfilled += highestPriceBuyOrder.getQuantity();
+                    quantityFulfilled += highestPriceBuyOrder.remainingQuantity();
                     buyOrdersToFullFill.add(highestPriceBuyOrder);
                     if(quantityFulfilled >= order.getQuantity()){
                         break;
                     }
-                }
-                if(quantityFulfilled >= order.getQuantity()){
-                    break;
                 }
             }
             if(buyOrdersToFullFill.isEmpty()) return;

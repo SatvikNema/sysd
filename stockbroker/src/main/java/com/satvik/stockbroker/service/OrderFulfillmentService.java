@@ -27,20 +27,21 @@ public class OrderFulfillmentService {
 
     public synchronized void fullFillOrders(Order biggerOrder, List<Order> smallerOrders){
         for(Order order : smallerOrders){
-            if(biggerOrder.getQuantity() > biggerOrder.getQuantityFilled()) {
-                Order sellOrder;
-                Order buyOrder;
-                if(biggerOrder.getOrderType() == OrderType.BUY){
-                    buyOrder = biggerOrder;
-                    sellOrder = order;
-                } else if(biggerOrder.getOrderType() == OrderType.SELL){
-                    sellOrder = biggerOrder;
-                    buyOrder = order;
-                } else {
-                    throw new IllegalStateException("Unknown order type");
-                }
-                fullFillOneOrder(sellOrder, buyOrder);
+            if(biggerOrder.getQuantity() == biggerOrder.getQuantityFilled()) {
+                break;
             }
+            Order sellOrder;
+            Order buyOrder;
+            if(biggerOrder.getOrderType() == OrderType.BUY){
+                buyOrder = biggerOrder;
+                sellOrder = order;
+            } else if(biggerOrder.getOrderType() == OrderType.SELL){
+                sellOrder = biggerOrder;
+                buyOrder = order;
+            } else {
+                throw new IllegalStateException("Unknown order type");
+            }
+            fullFillOneOrder(sellOrder, buyOrder);
         }
     }
 
@@ -53,8 +54,8 @@ public class OrderFulfillmentService {
 
         Stock stock = sellOrder.getStock();
 
-        int sellingQuantity = sellOrder.getQuantity() - sellOrder.getQuantityFilled();
-        int buyingQuantity = buyOrder.getQuantity() - buyOrder.getQuantityFilled();
+        int sellingQuantity = sellOrder.remainingQuantity();
+        int buyingQuantity = buyOrder.remainingQuantity();
         if(!stock.getId().equals(buyOrder.getStock().getId())){
             throw new IllegalStateException("Stocks in both orders should be same");
         }
