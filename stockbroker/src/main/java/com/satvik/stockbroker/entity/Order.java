@@ -17,4 +17,19 @@ public class Order {
     private Instant createdAt;
     private OrderStatus orderStatus;
     private OrderType orderType;
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id='" + id + '\'' +
+                ", user=" + user.getName() +
+                ", stock=" + stock.getName() +
+                ", quantity=" + quantity +
+                ", quantityFilled=" + quantityFilled +
+                ", price=" + price +
+                ", createdAt=" + createdAt +
+                ", orderStatus=" + orderStatus +
+                ", orderType=" + orderType +
+                '}';
+    }
 }

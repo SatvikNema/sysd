@@ -7,7 +7,9 @@ import com.satvik.stockbroker.entity.PortfolioItem;
 import com.satvik.stockbroker.entity.Stock;
 import com.satvik.stockbroker.entity.User;
 
+import java.sql.SQLOutput;
 import java.util.List;
+import java.util.Optional;
 
 public class OrderFullFillmentService {
 
@@ -34,6 +36,7 @@ public class OrderFullFillmentService {
         User sellingUser = sellOrder.getUser();
         User buyingUser = buyOrder.getUser();
         long sellingPrice = sellOrder.getPrice();
+        validateSellOrder(sellingUser, sellOrder);
 
         Stock stock = sellOrder.getStock();
 
@@ -75,15 +78,23 @@ public class OrderFullFillmentService {
         long totalSellingPrice = sellingPrice * partialFilledOrderQuantity;
         sellingUser.getBalance().getAndAdd(totalSellingPrice);
         buyingUser.getBalance().getAndAdd(-totalSellingPrice);
-        buyOrder.setQuantityFilled(partialFilledOrderQuantity);
-        sellOrder.setQuantityFilled(partialFilledOrderQuantity);
+        buyOrder.setQuantityFilled(buyOrder.getQuantityFilled() + partialFilledOrderQuantity);
+        sellOrder.setQuantityFilled(sellOrder.getQuantityFilled() + partialFilledOrderQuantity);
 
         if(typeToMarkPartial == OrderType.BUY){
             sellOrder.setOrderStatus(OrderStatus.FULFILLED);
             buyOrder.setOrderStatus(OrderStatus.PARTIALLY_FULFILLED);
+            if(buyOrder.getQuantityFilled() == buyOrder.getQuantity()){
+                System.out.println("Partial Order completed "+buyOrder.getId());
+                buyOrder.setOrderStatus(OrderStatus.FULFILLED);
+            }
             stock.getOrderQueue().remove(OrderType.SELL, sellOrder);
         } else if(typeToMarkPartial == OrderType.SELL){
             sellOrder.setOrderStatus(OrderStatus.PARTIALLY_FULFILLED);
+            if(sellOrder.getQuantityFilled() == sellOrder.getQuantity()){
+                System.out.println("Partial Order completed "+sellOrder.getId());
+                sellOrder.setOrderStatus(OrderStatus.FULFILLED);
+            }
             buyOrder.setOrderStatus(OrderStatus.FULFILLED);
             stock.getOrderQueue().remove(OrderType.BUY, buyOrder);
         } else {
@@ -94,6 +105,19 @@ public class OrderFullFillmentService {
         stock.getCurrentPrice().set(sellingPrice);
 
         System.out.println("Price of "+stock.getName()+" set to "+sellingPrice);
+    }
+
+    private void validateSellOrder(User sellingUser, Order sellOrder) {
+        Stock stock = sellOrder.getStock();
+
+        Optional<PortfolioItem> item = sellingUser.getPortfolio()
+                .stream()
+                .filter(e -> e.getStock().getId().equals(stock.getId()))
+                .findFirst();
+        if(item.isEmpty()){
+            sellOrder.setOrderStatus(OrderStatus.CANCELLED);
+            throw new IllegalStateException("User "+sellingUser.getName()+" does not have "+stock);
+        }
     }
 
     public void addToUserPortfolio(User user, PortfolioItem portfolioItem){

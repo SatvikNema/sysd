@@ -1,19 +1,21 @@
 package com.satvik.stockbroker;
 
+import com.satvik.stockbroker.entity.Order;
 import com.satvik.stockbroker.entity.OrderType;
 import com.satvik.stockbroker.entity.PortfolioItem;
 import com.satvik.stockbroker.entity.Stock;
 import com.satvik.stockbroker.entity.User;
+import com.satvik.stockbroker.exception.UserNotFoundException;
 import com.satvik.stockbroker.service.IOrderService;
 import com.satvik.stockbroker.service.IStockService;
 import com.satvik.stockbroker.service.IUserService;
-import com.satvik.stockbroker.service.OrderExecutorService;
 import com.satvik.stockbroker.service.impl.OrderService;
 import com.satvik.stockbroker.service.impl.StockService;
 import com.satvik.stockbroker.service.impl.UserService;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Scanner;
 
 public class StockExchange {
 
@@ -25,8 +27,7 @@ public class StockExchange {
         IUserService userService = new UserService();
         IStockService stockService = new StockService();
         IOrderService orderService = new OrderService(userService, stockService, Clock.systemUTC());
-        OrderExecutorService orderExecutorService = new OrderExecutorService(orderService);
-//        orderExecutorService.start();
+
 
         Stock itc = stockService.addStock(ITC, 100_00);
         Stock hul = stockService.addStock(HUL, 200_00);
@@ -65,13 +66,75 @@ public class StockExchange {
         );
         keshav.setPortfolio(keshavPortfolio);
 
+//        Order sell1 = orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 245_00);
+//        Order sell2 = orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 240_00);
+//        Order sell3 = orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 235_00);
+//
+//        Order buy1 = orderService.placeOrder("Kartik", OrderType.BUY, "ITC", 6, 250_00);
+//        orderService.matchOrder(buy1.getId());
 
-        orderService.placeOrder("Kartik", OrderType.BUY, "ITC", 6, 250_00);
-        orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 235_00);
-        orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 240_00);
-        orderService.placeOrder("Satvik", OrderType.SELL, "ITC", 2, 245_00);
+        Scanner scanner = new Scanner(System.in);
 
-        Thread.sleep(3000);
+
+        while (true) {
+            System.out.print("Enter command (type 'exit' to quit):\n");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("exit")) {
+                break;
+            }
+
+            String[] inputs = input.split(" ");
+
+            if("order".equalsIgnoreCase(inputs[0])){
+                String user = inputs[1];
+                String stockId = inputs[2];
+                OrderType orderType = OrderType.fromValue(inputs[3]);
+                int qty = Integer.parseInt(inputs[4]);
+                int price = Integer.parseInt(inputs[5]);
+                Order order = orderService.placeOrder(user, orderType, stockId, qty, price);
+                System.out.println("Order placed: "+order.getId());
+            } else if("execute".equalsIgnoreCase(inputs[0])){
+                String orderId = inputs[1];
+                orderService.executeOrder(orderId);
+            } else if("portfolio".equalsIgnoreCase(inputs[0])){
+                String userId = inputs[1];
+                User user = userService.getUser(userId).orElseThrow(() -> new UserNotFoundException("No user with id "+userId));
+                List<PortfolioItem> portfolio = user.getPortfolio();
+                System.out.println("Stock, qty, averagePrice");
+                for(PortfolioItem portfolioItem : portfolio){
+                    String stock = portfolioItem.getStock().getId();
+                    int qty = portfolioItem.getQty();
+                    double averagePrice = portfolioItem.getAveragePrice();
+                    System.out.println(stock+", "+qty+", "+averagePrice);
+                }
+            } else if("orders".equalsIgnoreCase(inputs[0])){
+                String userId = inputs[1];
+                User user = userService.getUser(userId).orElseThrow(() -> new UserNotFoundException("No user with id "+userId));
+                List<Order> orders = orderService.getOrders(userId);
+                System.out.println("Stock, qty, averagePrice");
+                for(Order order : orders){
+                    System.out.println(order);
+                }
+            }
+        }
+
+        /*
+order Satvik ITC sell 2 24500
+order Satvik ITC sell 2 24000
+order Satvik ITC sell 2 23500
+order Kartik ITC buy 6 25000
+
+execute <prev id>
+portfolio Satvik
+portfolio Kartik
+orders Satvik
+orders Kartik
+         */
+
+/*
+        OrderExecutorService orderExecutorService = new OrderExecutorService(orderService);
+        orderExecutorService.start();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 orderExecutorService.shutDown();
@@ -79,5 +142,6 @@ public class StockExchange {
                 throw new RuntimeException(e);
             }
         }));
+ */
     }
 }

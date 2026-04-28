@@ -15,7 +15,7 @@ public interface IOrderService {
                       int quantity,
                       long price);
 
-     void matchOrder(String orderId);
+     void executeOrder(String orderId);
 
      Optional<Order> getOrder(String orderId);
 

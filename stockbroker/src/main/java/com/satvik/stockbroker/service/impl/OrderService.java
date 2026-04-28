@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderService implements IOrderService {
     private final Map<String, Order> orderIdToOrder;
+    private final List<Order> orders = new ArrayList<>();
     private final IUserService userService;
     private final IStockService stockService;
     private final OrderFullFillmentService orderFullFillmentService;
@@ -83,12 +84,12 @@ public class OrderService implements IOrderService {
         }
 
         orderIdToOrder.put(id, order);
-        matchOrder(order.getId());
+        orders.add(order);
         return order;
     }
 
     @Override
-    public void matchOrder(String orderId) {
+    public void executeOrder(String orderId) {
         Order order = getOrder(orderId)
                 .orElseThrow(() -> new StockNotFoundException("Order with id " + orderId + " not found"));
         Stock stock = order.getStock();
@@ -104,11 +105,11 @@ public class OrderService implements IOrderService {
                 for(Order lowestPriceSellOrder : lowestPriceSellOrders){
                     quantityFulfilled += lowestPriceSellOrder.getQuantity();
                     sellOrdersToFullFill.add(lowestPriceSellOrder);
-                    if(quantityFulfilled > order.getQuantity()){
+                    if(quantityFulfilled >= order.getQuantity()){
                         break;
                     }
                 }
-                if(quantityFulfilled > order.getQuantity()){
+                if(quantityFulfilled >= order.getQuantity()){
                     break;
                 }
             }
@@ -127,11 +128,11 @@ public class OrderService implements IOrderService {
                 for(Order highestPriceBuyOrder : highestPriceBuyOrders){
                     quantityFulfilled += highestPriceBuyOrder.getQuantity();
                     buyOrdersToFullFill.add(highestPriceBuyOrder);
-                    if(quantityFulfilled > order.getQuantity()){
+                    if(quantityFulfilled >= order.getQuantity()){
                         break;
                     }
                 }
-                if(quantityFulfilled > order.getQuantity()){
+                if(quantityFulfilled >= order.getQuantity()){
                     break;
                 }
             }
@@ -148,6 +149,6 @@ public class OrderService implements IOrderService {
 
     @Override
     public List<Order> getAllOrders() {
-        return new ArrayList<>(orderIdToOrder.values());
+        return new ArrayList<>(orders);
     }
 }

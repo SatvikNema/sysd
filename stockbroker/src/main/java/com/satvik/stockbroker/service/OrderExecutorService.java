@@ -1,7 +1,9 @@
 package com.satvik.stockbroker.service;
 
+import com.satvik.stockbroker.entity.Order;
 import com.satvik.stockbroker.entity.OrderStatus;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -18,9 +20,10 @@ public class OrderExecutorService {
         executor.execute(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    orderService.getAllOrders().stream()
+                    List<Order> orders = orderService.getAllOrders();
+                    orders.stream()
                             .filter(order -> order.getOrderStatus() == OrderStatus.PENDING || order.getOrderStatus() == OrderStatus.PARTIALLY_FULFILLED)
-                            .forEach(order -> orderService.matchOrder(order.getId()));
+                            .forEach(order -> orderService.executeOrder(order.getId()));
                     System.out.println("-");
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
