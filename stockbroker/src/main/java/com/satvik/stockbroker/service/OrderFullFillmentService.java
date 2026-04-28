@@ -7,9 +7,11 @@ import com.satvik.stockbroker.entity.PortfolioItem;
 import com.satvik.stockbroker.entity.Stock;
 import com.satvik.stockbroker.entity.User;
 
-import java.sql.SQLOutput;
 import java.util.List;
 import java.util.Optional;
+
+import static com.satvik.stockbroker.util.OrderValidator.validateBuyOrder;
+import static com.satvik.stockbroker.util.OrderValidator.validateSellOrder;
 
 public class OrderFullFillmentService {
 
@@ -37,6 +39,7 @@ public class OrderFullFillmentService {
         User buyingUser = buyOrder.getUser();
         long sellingPrice = sellOrder.getPrice();
         validateSellOrder(sellingUser, sellOrder);
+        validateBuyOrder(buyingUser, buyOrder);
 
         Stock stock = sellOrder.getStock();
 
@@ -107,18 +110,7 @@ public class OrderFullFillmentService {
         System.out.println("Price of "+stock.getName()+" set to "+sellingPrice);
     }
 
-    private void validateSellOrder(User sellingUser, Order sellOrder) {
-        Stock stock = sellOrder.getStock();
 
-        Optional<PortfolioItem> item = sellingUser.getPortfolio()
-                .stream()
-                .filter(e -> e.getStock().getId().equals(stock.getId()))
-                .findFirst();
-        if(item.isEmpty()){
-            sellOrder.setOrderStatus(OrderStatus.CANCELLED);
-            throw new IllegalStateException("User "+sellingUser.getName()+" does not have "+stock);
-        }
-    }
 
     public void addToUserPortfolio(User user, PortfolioItem portfolioItem){
         List<PortfolioItem> portfolioItems = user.getPortfolio();

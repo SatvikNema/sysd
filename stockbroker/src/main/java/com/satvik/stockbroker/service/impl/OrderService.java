@@ -21,6 +21,9 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.satvik.stockbroker.util.OrderValidator.validateBuyOrder;
+import static com.satvik.stockbroker.util.OrderValidator.validateSellOrder;
+
 public class OrderService implements IOrderService {
     private final Map<String, Order> orderIdToOrder;
     private final List<Order> orders = new ArrayList<>();
@@ -74,10 +77,12 @@ public class OrderService implements IOrderService {
                 .orderType(orderType)
                 .build();
         if(orderType == OrderType.SELL){
+            validateSellOrder(user, order);
             List<Order> sellOrders = stock.getOrderQueue().getSellOrders().getOrDefault(order.getPrice(), new ArrayList<>());
             sellOrders.add(order);
             stock.getOrderQueue().getSellOrders().put(order.getPrice(), sellOrders);
         } else if (orderType == OrderType.BUY){
+            validateBuyOrder(user, order);
             List<Order> buyOrders = stock.getOrderQueue().getBuyOrders().getOrDefault(order.getPrice(), new ArrayList<>());
             buyOrders.add(order);
             stock.getOrderQueue().getBuyOrders().put(order.getPrice(), buyOrders);
