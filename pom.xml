@@ -25,6 +25,7 @@
     <module>oms</module>
     <module>omsclaude</module>
     <module>stockbroker</module>
+      <module>splitwise</module>
   </modules>
 
   <dependencies>
