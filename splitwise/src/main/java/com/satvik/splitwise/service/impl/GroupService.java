@@ -46,7 +46,7 @@ public class GroupService implements IGroupService {
     public Group addUser(Group group, User user) {
         Group group1 = getGroup(group.getId());
         group1.addUser(user);
-        return null;
+        return group1;
     }
 
     @Override
@@ -58,18 +58,31 @@ public class GroupService implements IGroupService {
         return group;
     }
 
+
     @Override
-    public List<Expense> getTransactionHistory(Group group, Optional<User> userOptional) {
-        List<Expense> expenses = new ArrayList<>(group.getExpenses());
-        if(userOptional.isPresent()){
-            User user = userOptional.get();
-            expenses = expenses.stream()
+    public List<Expense> getTransactionHistory(Group group) {
+        return new ArrayList<>(group.getExpenses());
+    }
+
+    @Override
+    public List<Expense> getTransactionHistory(Group group, User user) {
+        return getTransactionHistory(group).stream()
                     .filter(e ->
                             e.getPaidBy().equals(user) ||
                                     e.getExpenseShares().stream().anyMatch(s -> s.getUser().equals(user)))
                     .toList();
-            return expenses;
-        }
-        return List.of();
+    }
+
+    @Override
+    public double getBalance(Group group, User a, User b) {
+        double aOwsB = group.getUserGraph()
+                .getOrDefault(a, Map.of())
+                .getOrDefault(b, 0.0);
+
+        double bOwsA = group.getUserGraph()
+                .getOrDefault(b, Map.of())
+                .getOrDefault(a, 0.0);
+
+        return aOwsB - bOwsA;
     }
 }

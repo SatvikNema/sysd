@@ -3,7 +3,6 @@ package com.satvik.splitwise;
 import com.satvik.splitwise.entity.Expense;
 import com.satvik.splitwise.entity.Group;
 import com.satvik.splitwise.entity.User;
-import com.satvik.splitwise.model.Graph;
 import com.satvik.splitwise.model.SplitInformation;
 import com.satvik.splitwise.service.IExpenseService;
 import com.satvik.splitwise.service.IGroupService;
@@ -17,7 +16,6 @@ import com.satvik.splitwise.strategy.SplitStrategy;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class Driver {
     public void start(){
@@ -84,10 +82,11 @@ public class Driver {
                 .build();
         expense = expenseService.addExpense(splitInformation, percentageSplitStrategy);
 
-        Graph<User> userGraph = bandraOutingGroup.getUserGraph();
-        List<Expense> expenses = groupService.getTransactionHistory(bandraOutingGroup, Optional.of(kartik));
+        System.out.println(groupService.getBalance(bandraOutingGroup, kartik, keshav));
+        expenseService.settle(bandraOutingGroup, kartik, keshav, 300);
+        System.out.println(groupService.getBalance(bandraOutingGroup, kartik, keshav));
 
-        expenseService.settleExpense(expense.getId(), kartik.getName(), 100);
-        int x = 1;
+        Map<User, Map<User, Double>> userGraph = bandraOutingGroup.getUserGraph();
+        System.out.println(userGraph);
     }
 }

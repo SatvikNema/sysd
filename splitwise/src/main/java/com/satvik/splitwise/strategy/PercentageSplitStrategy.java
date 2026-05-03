@@ -46,10 +46,10 @@ public class PercentageSplitStrategy implements SplitStrategy{
             throw new IllegalArgumentException("Percentage split should be provided for all users, including the payer");
         }
 
-        if((accountedFor + paidUserShare) != 100){
-            throw new IllegalArgumentException("Total percentage distribution cannot exceed 100");
+        double totalPercentage = accountedFor + paidUserShare;
+        if(Math.abs(totalPercentage - 100) > 1e-6){
+            throw new IllegalArgumentException("Total percentage distribution should be 100. Not "+totalPercentage);
         }
-
 
         return shares;
     }

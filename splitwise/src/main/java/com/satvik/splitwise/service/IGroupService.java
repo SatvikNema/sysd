@@ -19,5 +19,8 @@ public interface IGroupService {
     Group addUser(Group group, User user);
     Group getGroup(String groupId);
 
-    List<Expense> getTransactionHistory(Group group, Optional<User> userOptional);
+    List<Expense> getTransactionHistory(Group group);
+    List<Expense> getTransactionHistory(Group group, User user);
+
+    double getBalance(Group group, User a, User b);
 }

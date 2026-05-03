@@ -1,7 +1,5 @@
 package com.satvik.splitwise.entity;
 
-import com.satvik.splitwise.model.Graph;
-import com.satvik.splitwise.model.Node;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +7,9 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 @Builder
@@ -19,12 +19,19 @@ public class Group {
     private final Set<User> users = new HashSet<>();
     private User createdBy;
     private final List<Expense> expenses = new ArrayList<>();
-    private final Graph<User> userGraph = new Graph<>();
+
+    private final Map<User, Map<User, Double>> userGraph = new ConcurrentHashMap<>();
 
     public synchronized void addUser(User user){
         if(users.contains(user)) return;
         users.add(user);
-        userGraph.addNode(new Node<>(user));
+        userGraph.putIfAbsent(user, new ConcurrentHashMap<>());
+    }
+
+    public void addOweAmount(User debtUser, User toBePaidUser, double amount){
+        userGraph
+                .computeIfAbsent(debtUser, (user) -> new ConcurrentHashMap<>())
+                .merge(toBePaidUser, amount, Double::sum);
     }
 
 }
