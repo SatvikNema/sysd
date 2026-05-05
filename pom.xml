@@ -26,6 +26,7 @@
     <module>omsclaude</module>
     <module>stockbroker</module>
       <module>splitwise</module>
+      <module>ratelimiternew</module>
   </modules>
 
   <dependencies>
