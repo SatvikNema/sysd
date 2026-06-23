@@ -27,6 +27,10 @@
     <module>stockbroker</module>
       <module>splitwise</module>
     <module>moviebooking</module>
+    <module>dsa</module>
+    <module>gcal</module>
+    <module>shuttleservice</module>
+    <module>uber</module>
   </modules>
 
   <dependencies>
