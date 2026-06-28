@@ -31,6 +31,8 @@
     <module>gcal</module>
     <module>shuttleservice</module>
     <module>uber</module>
+    <module>filesystem</module>
+    <module>snake-game</module>
   </modules>
 
   <dependencies>
