@@ -25,7 +25,7 @@
     <module>oms</module>
     <module>omsclaude</module>
     <module>stockbroker</module>
-      <module>splitwise</module>
+    <module>splitwise</module>
     <module>moviebooking</module>
     <module>dsa</module>
     <module>gcal</module>
