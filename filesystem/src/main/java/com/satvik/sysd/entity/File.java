@@ -1,6 +1,6 @@
 package com.satvik.sysd.entity;
 
-class File extends Node {
+public class File extends Node {
 
     private final StringBuilder content = new StringBuilder();
 
@@ -19,5 +19,10 @@ class File extends Node {
     @Override
     public int size() {
         return content.length();
+    }
+
+    @Override
+    public String toString() {
+        return "File{" + "name='" + name + "'}";
     }
 }

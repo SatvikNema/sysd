@@ -3,7 +3,7 @@ package com.satvik.sysd.entity;
 import lombok.Getter;
 
 @Getter
-abstract class Node {
+public abstract class Node {
 
     protected String name;
     protected Directory parent;

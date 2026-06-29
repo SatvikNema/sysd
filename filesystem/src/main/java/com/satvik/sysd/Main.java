@@ -2,7 +2,8 @@ package com.satvik.sysd;
 
 public class Main {
     static void main() {
-        System.out.println("hello");
+        Driver driver = new Driver();
+        driver.start();
     }
 }
 /*
@@ -22,8 +23,6 @@ entities
 3. User - id, username
 4. UserPermission - user, permission, path
 
-Use composite design pattern - Node to handle files and directoryies cleanly behind a common abstract class
-
-
+Use composite design pattern - Node to handle files and directories cleanly behind a common abstract class
 
  */

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class Directory extends Node {
+public class Directory extends Node {
 
     private final Map<String, Node> children;
 
@@ -38,5 +38,13 @@ class Directory extends Node {
             sum += child.size();
 
         return sum;
+    }
+
+    @Override
+    public String toString() {
+        return "Directory{" +
+                "name='" + name + '\'' +
+                ", parent=" + parent +
+                '}';
     }
 }
