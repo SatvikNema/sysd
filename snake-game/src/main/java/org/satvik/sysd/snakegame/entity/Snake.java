@@ -1,6 +1,7 @@
 package org.satvik.sysd.snakegame.entity;
 
 import org.satvik.sysd.snakegame.exception.SnakeCollisionException;
+import org.satvik.sysd.snakegame.exception.SnakeDiedException;
 import org.satvik.sysd.snakegame.model.Direction;
 import org.satvik.sysd.snakegame.model.Position;
 
@@ -58,6 +59,9 @@ public class Snake {
     }
 
     public void shrink(Direction direction){
+        if(getSize() == 1) {
+            throw new SnakeDiedException("Snake size has become 0");
+        }
         move(direction);
         if(!body.isEmpty()) {
             positionSet.remove(body.removeLast());

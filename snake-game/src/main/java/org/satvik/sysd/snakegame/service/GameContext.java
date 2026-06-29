@@ -4,8 +4,11 @@ import org.satvik.sysd.snakegame.entity.Board;
 import org.satvik.sysd.snakegame.entity.Edible;
 import org.satvik.sysd.snakegame.entity.Snake;
 import org.satvik.sysd.snakegame.exception.OutOfBoardException;
+import org.satvik.sysd.snakegame.exception.SnakeCollisionException;
+import org.satvik.sysd.snakegame.exception.SnakeDiedException;
 import org.satvik.sysd.snakegame.model.Direction;
 import org.satvik.sysd.snakegame.model.EdibleType;
+import org.satvik.sysd.snakegame.model.GameState;
 import org.satvik.sysd.snakegame.model.Position;
 
 import java.util.HashSet;
@@ -18,6 +21,7 @@ public class GameContext {
     private EdibleFactory edibleFactory;
     private Edible poison;
     private Edible food;
+    private GameState state;
 
     public GameContext(int r, int c, Position snakePosition){
         this.board = new Board(r, c);
@@ -26,6 +30,7 @@ public class GameContext {
         }
         this.snake = new Snake(snakePosition);
         initialiseEdibles();
+        this.state = GameState.IN_PROGRESS;
     }
 
     public void initialiseEdibles(){
@@ -38,7 +43,11 @@ public class GameContext {
 
     public void tick(Direction direction){
         Position nextPosition = snake.getNextHead(direction);
+        if(state != GameState.IN_PROGRESS){
+            throw new RuntimeException("Game is not in progress!");
+        }
         if(board.isOutside(nextPosition)){
+            state = GameState.LOST;
             throw new OutOfBoardException("game over as out of bound at "+nextPosition);
         }
         Edible edible = null;
@@ -51,10 +60,16 @@ public class GameContext {
             this.food = edibleFactory.generate(EdibleType.FOOD, this);
             System.out.println("Food is at "+food.getPosition());
         }
-        if(edible != null){
-            edible.apply(snake, direction);
-        } else {
-            snake.move(direction);
+        try {
+            if (edible != null) {
+                edible.apply(snake, direction);
+            } else {
+                snake.move(direction);
+            }
+        } catch (SnakeCollisionException | SnakeDiedException ex){
+            state = GameState.LOST;
+            System.out.println("Game is lost");
+
         }
         System.out.println("snake is at "+snake.getHead()+" size: "+snake.getSize());
     }
@@ -74,5 +89,9 @@ public class GameContext {
 
     public int[] getGameSize(){
         return new int[]{board.getRow(), board.getColumn()};
+    }
+
+    public void setGameState(GameState state){
+        this.state = state;
     }
 }

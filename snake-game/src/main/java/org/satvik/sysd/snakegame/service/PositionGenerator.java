@@ -1,5 +1,6 @@
 package org.satvik.sysd.snakegame.service;
 
+import org.satvik.sysd.snakegame.model.GameState;
 import org.satvik.sysd.snakegame.model.Position;
 
 import java.util.Random;
@@ -14,6 +15,10 @@ public class PositionGenerator {
         int cols = gameSize[1];
 
         Set<Position> occupied = gameContext.getOccupiedPositions();
+        if(rows * cols == occupied.size()){
+            gameContext.setGameState(GameState.WON);
+            return new Position(-1, -1);
+        }
 
         Random random = ThreadLocalRandom.current();
 
