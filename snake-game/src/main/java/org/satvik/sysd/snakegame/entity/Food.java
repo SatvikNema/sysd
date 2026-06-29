@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.satvik.sysd.snakegame.model.Direction;
+import org.satvik.sysd.snakegame.model.EdibleType;
 import org.satvik.sysd.snakegame.model.Position;
 
 @Data
@@ -13,7 +14,12 @@ public class Food implements Edible{
     private Position position;
 
     @Override
-    public void apply(Snake snake, Direction direction) {
-        snake.grow(direction);
+    public MoveResult apply(Snake snake, Direction direction) {
+        return snake.grow(direction);
+    }
+
+    @Override
+    public EdibleType getType() {
+        return EdibleType.FOOD;
     }
 }

@@ -6,7 +6,6 @@ import org.satvik.sysd.snakegame.model.Position;
 
 @Data
 public class Board {
-    private int size;
     private int row;
     private int column;
 

@@ -5,9 +5,12 @@ import org.satvik.sysd.snakegame.exception.SnakeDiedException;
 import org.satvik.sysd.snakegame.model.Direction;
 import org.satvik.sysd.snakegame.model.Position;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -39,33 +42,39 @@ public class Snake {
         return result;
     }
 
-    public void move(Direction direction){
+    public MoveResult move(Direction direction){
         Position nextPosition = getNextHead(direction);
         if(willCollide(nextPosition, true)){
             throw new SnakeCollisionException();
         }
-        positionSet.remove(body.removeLast());
+        Position removedTail = body.removeLast();
+        positionSet.remove(removedTail);
         positionSet.add(nextPosition);
         body.addFirst(nextPosition);
+        return new MoveResult(nextPosition, List.of(removedTail));
     }
 
-    public void grow(Direction direction){
+    public MoveResult grow(Direction direction){
         Position nextPosition = getNextHead(direction);
         if(willCollide(nextPosition, false)){
             throw new SnakeCollisionException();
         }
         positionSet.add(nextPosition);
         body.addFirst(nextPosition);
+        return new MoveResult(nextPosition, List.of());
     }
 
-    public void shrink(Direction direction){
+    public MoveResult shrink(Direction direction){
         if(getSize() == 1) {
             throw new SnakeDiedException("Snake size has become 0");
         }
-        move(direction);
-        if(!body.isEmpty()) {
-            positionSet.remove(body.removeLast());
-        }
+        MoveResult moveResult = move(direction);
+        Position extraTail = body.removeLast();
+        positionSet.remove(extraTail);
+
+        List<Position> removedTails = new ArrayList<>(moveResult.removedTails());
+        removedTails.add(extraTail);
+        return new MoveResult(moveResult.addedHead(), removedTails);
     }
 
     private boolean willCollide(Position nextHead, boolean ignoreTail){
@@ -80,7 +89,7 @@ public class Snake {
     }
 
     public Set<Position> getBody(){
-        return new HashSet<>(positionSet);
+        return Collections.unmodifiableSet(positionSet);
     }
 
     public int getSize(){
