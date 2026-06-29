@@ -33,6 +33,7 @@
     <module>uber</module>
     <module>filesystem</module>
     <module>snake-game</module>
+    <module>inmemcache</module>
   </modules>
 
   <dependencies>
